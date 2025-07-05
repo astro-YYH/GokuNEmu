@@ -1,0 +1,18 @@
+Metadata-Version: 2.4
+Name: GokuNEmu
+Version: 0.1.3
+Summary: 10D emulator for the nonlinear matter power spectrum built on Goku simulations
+Author-email: Yanhui Yang <yyang440@ucr.edu>
+License-Expression: MIT
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: torch
+Requires-Dist: scikit-learn
+Requires-Dist: numpy
+Requires-Dist: scipy
+Dynamic: license-file
+
+# GokuNEmu
+
+A 10D emulator for the nonlinear matter power spectrum

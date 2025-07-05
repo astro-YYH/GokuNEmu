@@ -1,0 +1,17 @@
+LICENSE
+README.md
+pyproject.toml
+GokuNEmu.egg-info/PKG-INFO
+GokuNEmu.egg-info/SOURCES.txt
+GokuNEmu.egg-info/dependency_links.txt
+GokuNEmu.egg-info/requires.txt
+GokuNEmu.egg-info/top_level.txt
+gokunemu/__init__.py
+gokunemu/input_limits-W.txt
+gokunemu/mfbox.py
+gokunemu/train_model.py
+gokunemu/models/L1A/best_model.pth
+gokunemu/models/L1HAr/best_model.pth
+gokunemu/models/L1HAr/best_model_old.pth
+gokunemu/models/L2/best_model.pth
+gokunemu/models/L2Hr/best_model.pth

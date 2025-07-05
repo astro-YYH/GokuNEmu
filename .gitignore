@@ -1,0 +1,9 @@
+*.out
+*local*
+__pycache__
+*scratch*
+*.log*
+*test*
+*.pdf
+.DS_Store
+
