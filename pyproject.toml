@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "GokuNEmu"  # must be unique on PyPI
-version = "0.1.3"
+version = "0.1.5"
 description = "10D emulator for the nonlinear matter power spectrum built on Goku simulations"
 readme = "README.md"
 license = "MIT"

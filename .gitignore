@@ -6,4 +6,6 @@ __pycache__
 *test*
 *.pdf
 .DS_Store
+dist/
+GokuNEmu.egg-info
 

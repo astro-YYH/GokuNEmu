@@ -2,7 +2,7 @@
 import numpy as np
 from .mfbox import gokunet_df_ratio
 from scipy.interpolate import interp1d
-# from importlib.resources import files
+from importlib.resources import files
 
 def sigmoid_ramp(x, x_start, x_end, sharpness=10):
     """Smooth transition from 0 to 1 over [x_start, x_end] using a sigmoid."""
@@ -33,15 +33,15 @@ class MatterPowerEmulator:
         # Load pretrained neural networks
         bounds_path = "input_limits-W.txt"
         self.emu1 = gokunet_df_ratio(
-            path_LF="models/L1A/best_model.pth",
-            path_LHr="models/L1HAr/best_model.pth",
-            bounds_path=bounds_path,
+            path_LF=str(files("gokunemu").joinpath("models/L1A/best_model.pth")),
+            path_LHr=str(files("gokunemu").joinpath("models/L1HAr/best_model.pth")),
+            bounds_path=str(files("gokunemu").joinpath(bounds_path)),
             device=device
         )
         self.emu2 = gokunet_df_ratio(
-            path_LF="models/L2/best_model.pth",
-            path_LHr="models/L2Hr/best_model.pth",
-            bounds_path=bounds_path,
+            path_LF=str(files("gokunemu").joinpath("models/L2/best_model.pth")),
+            path_LHr=str(files("gokunemu").joinpath("models/L2Hr/best_model.pth")),
+            bounds_path=str(files("gokunemu").joinpath(bounds_path)),
             device=device
         )
 
