@@ -59,6 +59,10 @@ class MatterPowerEmulator:
 
         self.weights = sigmoid_ramp(k_com, k_com[0], k_com[-1], sharpness=4)
 
+        # load P+F correction factor
+        pf_correction_file = "pplusf_0195.npy"
+        self.alpha_pf = np.load(str(files("gokunemu").joinpath(pf_correction_file)))
+
     def _expand_params(self, cosmo_params, Om, Ob, hubble, As, ns, w0, wa, mnu, Neff, alphas):
         if cosmo_params is None:
             return np.array([[Om, Ob, hubble, As, ns, w0, wa, mnu, Neff, alphas]])
@@ -102,6 +106,9 @@ class MatterPowerEmulator:
         Pk2_com = Pk2[:, :, :self.i_2_cut]
         Pk_blend = blend_predictions(Pk1_com, Pk2_com, self.weights)
         Pk = np.concatenate((Pk1[:, :, :self.i_1_cut], Pk_blend, Pk2[:, :, self.i_2_cut:]), axis=2)
+
+        # apply P+F correction
+        Pk *= self.alpha_pf
 
         # Interpolate log10 P(k) in redshift space to target redshifts
         log_Pk = np.log10(Pk)

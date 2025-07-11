@@ -17,7 +17,7 @@ pip install gokunemu
 
 ## Usage
 
-A brief example is provided in `speed_benchmark.ipynb`, demonstrating how to use GokuEmu for matter power spectrum predictions.
+A brief example is provided in `examples/example.ipynb`, demonstrating how to use GokuEmu for matter power spectrum predictions. `speed_benchmark.ipynb` can be used to benchmark runtime.
 
 ---
 

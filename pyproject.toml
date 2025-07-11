@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "GokuNEmu"  # must be unique on PyPI
-version = "0.1.5"
+version = "0.1.7"
 description = "10D emulator for the nonlinear matter power spectrum built on Goku simulations"
 readme = "README.md"
 license = "MIT"
@@ -23,4 +23,4 @@ requires-python = ">=3.10"
 include = ["gokunemu"]
 
 [tool.setuptools.package-data]
-gokunemu = ["models/**/best_model.pth", "input_limits-W.txt"]
+gokunemu = ["models/**/best_model.pth", "input_limits-W.txt", "pplusf_0195.npy"]
