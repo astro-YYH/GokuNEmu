@@ -13,7 +13,7 @@ pip install gokunemu
 ```
 
 > **Note for Intel Mac users:**  
-> You may need to install `pytorch` via `conda` before installing GokuNEmu due to potential compatibility issues with `pip` wheels:
+> You may need to install (if not yet) `pytorch` via `conda` before installing GokuNEmu due to potential compatibility issues with `pip` wheels:
 > ```bash
 > conda install -c conda-forge pytorch
 > ```
@@ -26,6 +26,9 @@ Example notebooks are provided in the `examples/` directory:
 
 - `example.ipynb`: Demonstrates how to use GokuNEmu for predicting the nonlinear matter power spectrum.
 - `speed_benchmark.ipynb`: Benchmarks the runtime performance.
+
+## Training data
+The data used as the training set for the emulator are available at https://github.com/astro-YYH/T2N-MusE.
 
 ---
 
