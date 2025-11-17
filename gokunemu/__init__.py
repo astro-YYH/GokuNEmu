@@ -44,6 +44,12 @@ class MatterPowerEmulator:
             bounds_path=str(files("gokunemu").joinpath(bounds_path)),
             device=device
         )
+        self.emu_lin = gokunet_df_ratio(
+            path_LF=str(files("gokunemu").joinpath("models/L2_linear/best_model.pth")),
+            path_LHr=str(files("gokunemu").joinpath("models/L2Hr/best_model.pth")), # not used
+            bounds_path=str(files("gokunemu").joinpath(bounds_path)),
+            device=device
+        )
 
         # Sample dummy input to extract k1 and k2 structure
         dummy_params = np.zeros((1, 10))
@@ -69,7 +75,7 @@ class MatterPowerEmulator:
         return np.atleast_2d(cosmo_params)
 
 
-    def predict(
+    def get_matter_power(
         self,
         cosmo_params: np.ndarray = None,
         Om: float = 0.3,
@@ -119,4 +125,41 @@ class MatterPowerEmulator:
 
         return self.k, 10 ** log_Pk_interp
 
+    def get_matter_power_lin(
+        self,
+        cosmo_params: np.ndarray = None,
+        Om: float = 0.3,
+        Ob: float = 0.05,
+        hubble: float = 0.7,
+        As: float = 2.1e-9,
+        ns: float = 0.96,
+        w0: float = -1.0,
+        wa: float = 0.0,
+        mnu: float = 0.06,
+        Neff: float = 3.044,
+        alphas: float = 0.0,
+        redshifts: np.ndarray = np.array([0.])
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Predicts the linear matter power spectrum for given cosmological parameters and redshifts.
 
+        Returns:
+        - k_lin: linear theory k-array
+        - Pk_obj: Array of P(k, z) predictions, shape (n_samples, len(redshifts), len(k_lin))
+        """
+        # Expand cosmological parameters to 2D array if needed
+        cosmo_params = self._expand_params(cosmo_params, Om, Ob, hubble, As, ns, w0, wa, mnu, Neff, alphas)
+
+        n_samples = cosmo_params.shape[0]
+
+        # Predict full redshift grid
+        k_lin, Pk = self.emu_lin.predict_LF(cosmo_params)
+
+        # Interpolate log10 P(k) in redshift space to target redshifts
+        log_Pk = np.log10(Pk)
+        log_Pk_interp = np.array([
+            interp1d(self.z_bins, log_Pk[i], kind='linear', axis=0, bounds_error=False, fill_value='extrapolate')(redshifts)
+            for i in range(n_samples)
+        ])
+
+        return k_lin, 10 ** log_Pk_interp
