@@ -45,7 +45,7 @@ class MatterPowerEmulator:
             device=device
         )
         self.emu_lin = gokunet_df_ratio(
-            path_LF=str(files("gokunemu").joinpath("models/L2_linear/best_model.pth")),
+            path_LF=str(files("gokunemu").joinpath("models/W_L2_linear/best_model.pth")),
             path_LHr=str(files("gokunemu").joinpath("models/L2Hr/best_model.pth")), # not used
             bounds_path=str(files("gokunemu").joinpath(bounds_path)),
             device=device
@@ -154,6 +154,11 @@ class MatterPowerEmulator:
 
         # Predict full redshift grid
         k_lin, Pk = self.emu_lin.predict_LF(cosmo_params)
+
+        # keep only k > 0.001 h/Mpc (large errors at very large scales)
+        mask = k_lin > 0.001
+        k_lin = k_lin[mask]
+        Pk = Pk[:, :, mask]
 
         # Interpolate log10 P(k) in redshift space to target redshifts
         log_Pk = np.log10(Pk)
