@@ -16,18 +16,16 @@ The nonlinear matter power spectrum describes how matter clusters across cosmic 
 
 GokuNEmu takes ten cosmological parameters. The bounds of the broad **Goku-W** parameter space are:
 
-| Parameter (API name) | Goku-W bounds |
-|---|---:|
-| Total matter density, $\Omega_m$ (`Om`) | $[0.22, 0.40]$ |
-| Baryon density, $\Omega_b$ (`Ob`) | $[0.040, 0.055]$ |
-| Reduced Hubble parameter, $h$ (`hubble`) | $[0.60, 0.76]$ |
-| Primordial scalar amplitude, $A_s$ (`As`) | $[1.0 \times 10^{-9}, 3.0 \times 10^{-9}]$ |
-| Scalar spectral index, $n_s$ (`ns`) | $[0.80, 1.10]$ |
-| Dark-energy equation-of-state parameter, $w_0$ (`w0`) | $[-1.30, 0.25]$ |
-| Dark-energy evolution parameter, $w_a$ (`wa`) | $[-3.0, 0.5]$ |
-| Sum of neutrino masses, $\sum m_\nu$ (`mnu`) | $[0.0, 0.6]\,\mathrm{eV}$ |
-| Effective number of relativistic species, $N_\mathrm{eff}$ (`Neff`) | $[2.2, 4.5]$ |
-| Running of the scalar spectral index, $\alpha_s$ (`alphas`) | $[-0.05, 0.05]$ |
+- Total matter density, $\Omega_m$ (`Om`): $[0.22, 0.40]$
+- Baryon density, $\Omega_b$ (`Ob`): $[0.040, 0.055]$
+- Reduced Hubble parameter, $h$ (`hubble`): $[0.60, 0.76]$
+- Primordial scalar amplitude, $A_s$ (`As`): $[1.0 \times 10^{-9}, 3.0 \times 10^{-9}]$
+- Scalar spectral index, $n_s$ (`ns`): $[0.80, 1.10]$
+- Dark-energy equation-of-state parameter, $w_0$ (`w0`): $[-1.30, 0.25]$
+- Dark-energy evolution parameter, $w_a$ (`wa`): $[-3.0, 0.5]$
+- Sum of neutrino masses, $\sum m_\nu$ (`mnu`): $[0.0, 0.6]\,\mathrm{eV}$
+- Effective number of relativistic species, $N_\mathrm{eff}$ (`Neff`): $[2.2, 4.5]$
+- Running of the scalar spectral index, $\alpha_s$ (`alphas`): $[-0.05, 0.05]$
 
 ---
 
