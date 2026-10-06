@@ -1,7 +1,6 @@
 # import sys
 import numpy as np
 from .mfbox import gokunet_df_ratio
-from scipy.interpolate import interp1d
 from importlib.resources import files
 
 def sigmoid_ramp(x, x_start, x_end, sharpness=10):
@@ -12,6 +11,24 @@ def sigmoid_ramp(x, x_start, x_end, sharpness=10):
 
 def blend_predictions(Pk1_com, Pk2_com, weights):
     return Pk1_com * (1 - weights) + Pk2_com * weights
+
+
+def _interpolate_redshifts(z_bins, values, redshifts):
+    """Linearly interpolate or extrapolate batched spectra along redshift."""
+    redshifts = np.asarray(redshifts)
+    indices = np.clip(
+        np.searchsorted(z_bins, redshifts, side="right") - 1,
+        0,
+        len(z_bins) - 2,
+    )
+    fractions = (
+        (redshifts - z_bins[indices])
+        / (z_bins[indices + 1] - z_bins[indices])
+    )
+    lower = values[:, indices, :]
+    return lower + (values[:, indices + 1, :] - lower) * np.expand_dims(
+        fractions, axis=(0, -1)
+    )
 
 
 class MatterPowerEmulator:
@@ -52,7 +69,6 @@ class MatterPowerEmulator:
         bounds_path = "input_limits-W.txt"
         self.emu_lin = gokunet_df_ratio(
             path_LF=str(files("gokunemu").joinpath("models/W_L2_linear/best_model.pth")),
-            path_LHr=str(files("gokunemu").joinpath("models/W_L2Hr/best_model.pth")), # not used
             bounds_path=str(files("gokunemu").joinpath(bounds_path)),
             device=device
         )
@@ -77,9 +93,8 @@ class MatterPowerEmulator:
             device=device
         )
 
-        dummy_params = np.zeros((1, 10))
-        k1, _ = emu1.predict(dummy_params)
-        k2, _ = emu2.predict(dummy_params)
+        k1 = emu1.k
+        k2 = emu2.k
         i_1_cut = np.where(k1 <= k2.min())[0][-1]
         i_2_cut = np.where(k2 > k1.max())[0][0]
         k_com = k1[i_1_cut:]
@@ -137,7 +152,6 @@ class MatterPowerEmulator:
         """
         # Expand cosmological parameters to 2D array if needed
         cosmo_params = self._expand_params(cosmo_params, Om, Ob, hubble, As, ns, w0, wa, mnu, Neff, alphas)
-
         n_samples = cosmo_params.shape[0]
 
         # Route each input independently: N inside the Goku-N box, W otherwise.
@@ -165,10 +179,7 @@ class MatterPowerEmulator:
 
         # Interpolate log10 P(k) in redshift space to target redshifts
         log_Pk = np.log10(Pk)
-        log_Pk_interp = np.array([
-            interp1d(self.z_bins, log_Pk[i], kind='linear', axis=0, bounds_error=False, fill_value='extrapolate')(redshifts)
-            for i in range(n_samples)
-        ])
+        log_Pk_interp = _interpolate_redshifts(self.z_bins, log_Pk, redshifts)
 
         return self.k, 10 ** log_Pk_interp
 
@@ -197,8 +208,6 @@ class MatterPowerEmulator:
         # Expand cosmological parameters to 2D array if needed
         cosmo_params = self._expand_params(cosmo_params, Om, Ob, hubble, As, ns, w0, wa, mnu, Neff, alphas)
 
-        n_samples = cosmo_params.shape[0]
-
         # Predict full redshift grid
         k_lin, Pk = self.emu_lin.predict_LF(cosmo_params)
 
@@ -209,9 +218,6 @@ class MatterPowerEmulator:
 
         # Interpolate log10 P(k) in redshift space to target redshifts
         log_Pk = np.log10(Pk)
-        log_Pk_interp = np.array([
-            interp1d(self.z_bins, log_Pk[i], kind='linear', axis=0, bounds_error=False, fill_value='extrapolate')(redshifts)
-            for i in range(n_samples)
-        ])
+        log_Pk_interp = _interpolate_redshifts(self.z_bins, log_Pk, redshifts)
 
         return k_lin, 10 ** log_Pk_interp

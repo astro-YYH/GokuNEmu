@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from .train_model import SimpleNN
+from ._model import SimpleNN
 import torch.nn as nn
 
 act_dict = {'ReLU': nn.ReLU(), 'SiLU': nn.SiLU(), 'Tanh': nn.Tanh(), 'None': None}
@@ -30,6 +30,11 @@ class RescaledNN(SimpleNN):  # not for training, only for prediction
         self.std_mean = std_mean.to(device) if std_mean is not None else None
         self.std_scale = std_scale.to(device) if std_scale is not None else None
         self.n_pc_zs = n_pc_zs if n_pc_zs is not None else None
+        self.offset_pc_zs = (
+            np.insert(np.cumsum(self.n_pc_zs[:-1]).astype(int), 0, 0)
+            if self.n_pc_zs is not None
+            else None
+        )
 
     def forward(self, x):
         """
@@ -58,20 +63,17 @@ class RescaledNN(SimpleNN):  # not for training, only for prediction
                 print('pca_components shape', self.pca_components.shape)
                 y_pred = y_pred @ self.pca_components + self.pca_mean.to(self.device)  # deprecated, will be removed in the future
             else:
-                # get the offset of the PCA coefficients from n_pc_zs
-                offset_pc_zs = np.insert(np.cumsum(self.n_pc_zs[:-1]).astype(int), 0, 0)
-
                 n_k = self.pca_components[0].shape[1]  # number of k bins
                 n_z = len(self.n_pc_zs)
                 # y_pred_new initialized to zeros in the shape of full dimension
-                y_pred_new = torch.zeros(y_pred.shape[0], n_k * n_z, device=self.device)
+                y_pred_new = y_pred.new_zeros((y_pred.shape[0], n_k * n_z))
                 for i in range(n_z):
                     ik_start = i * n_k
                     ik_end = ik_start + n_k
 
                     # index of coefficient
-                    ic_start = offset_pc_zs[i]
-                    ic_end = offset_pc_zs[i] + self.n_pc_zs[i]
+                    ic_start = self.offset_pc_zs[i]
+                    ic_end = self.offset_pc_zs[i] + self.n_pc_zs[i]
 
                     # inverse transform for this redshift bin
                     y_pred_new[:, ik_start:ik_end] = y_pred[:, ic_start:ic_end] @ self.pca_components[i] + self.pca_mean[i]
@@ -187,11 +189,12 @@ class singlefid:
         self.model.eval()
 
     def predict(self, x):
-        # Convert to tensor
-        x_tensor = torch.tensor(x, dtype=torch.float32).to(self.device)
+        """Run inference without constructing an autograd graph."""
+        x_tensor = torch.as_tensor(x, dtype=torch.float32, device=self.device)
 
         # Make predictions
-        y = self.model(x_tensor)
+        with torch.inference_mode():
+            y = self.model(x_tensor)
 
         return self.lgk, y.detach().cpu().numpy()
 
@@ -258,26 +261,33 @@ class doublefid:
 
     
 class gokunet_df_ratio:
-    def __init__(self, path_LF, path_LHr, device='cpu', bounds_path="./data/pre_N_xL-H_stitch_z0/input_limits.txt"):
+    def __init__(self, path_LF, path_LHr=None, device='cpu', bounds_path="./data/pre_N_xL-H_stitch_z0/input_limits.txt"):
         self.device = torch.device(device)
 
         # Load the saved model dictionary
         self.single_LF = singlefid(path_LF, device=self.device)
-        self.single_LHr = singlefid(path_LHr, device=self.device)
+        self.single_LHr = singlefid(path_LHr, device=self.device) if path_LHr is not None else None
         self.bounds = np.loadtxt(bounds_path)
+        self.k = 10 ** np.asarray(self.single_LF.lgk)
+
+    def _normalize(self, x):
+        """Scale emulator inputs to the unit training box."""
+        return (x - self.bounds[:, 0]) / (self.bounds[:, 1] - self.bounds[:, 0])
 
     def predict_LF(self, x):
         # bounds
-        x = (x - self.bounds[:,0]) / (self.bounds[:,1] - self.bounds[:,0])
+        x = self._normalize(x)
         # lg to linear
         lgk, y_LF = self.single_LF.predict(x)
         # reshape y_LF(n_sample, n_k * n_z) back to (n_sample, n_z, n_k) if needed: len(lgk) = n_k < y_LF.shape[1]
         if len(lgk) < y_LF.shape[1]:
             y_LF = y_LF.reshape(y_LF.shape[0], -1, len(lgk))
-        return 10**lgk, 10**y_LF
+        return self.k, 10**y_LF
     
     def predict_LHr(self, x):
-        x = (x - self.bounds[:,0]) / (self.bounds[:,1] - self.bounds[:,0])
+        if self.single_LHr is None:
+            raise RuntimeError("This emulator does not have a high-resolution ratio model")
+        x = self._normalize(x)
         # lg to linear
         lgk, ratio_LH = self.single_LHr.predict(x)
         if len(lgk) < ratio_LH.shape[1]:
@@ -285,11 +295,18 @@ class gokunet_df_ratio:
         return 10**lgk, ratio_LH
     
     def predict(self, x):
-        k, y_LF = self.predict_LF(x)
-        _, ratio_LH = self.predict_LHr(x)
+        if self.single_LHr is None:
+            raise RuntimeError("This emulator does not have a high-resolution ratio model")
 
-        y_H = y_LF * ratio_LH
-        return k, y_H
+        x = self._normalize(x)
+        lgk, y_LF = self.single_LF.predict(x)
+        _, ratio_LH = self.single_LHr.predict(x)
+        if len(lgk) < y_LF.shape[1]:
+            y_LF = y_LF.reshape(y_LF.shape[0], -1, len(lgk))
+        if len(lgk) < ratio_LH.shape[1]:
+            ratio_LH = ratio_LH.reshape(ratio_LH.shape[0], -1, len(lgk))
+
+        return self.k, 10**y_LF * ratio_LH
 
 # load L1, L2 and LF-HF models, and make predictions
 class mfbox:
