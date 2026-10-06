@@ -2,6 +2,8 @@
 
 **GokuNEmu** is a neural network (NN) emulator for the nonlinear matter power spectrum, trained on simulations from the **Goku** suite using the [T2N-MusE](https://github.com/astro-YYH/T2N-MusE) emulation technique.
 
+> **Post-publication update:** The current package no longer uses the models trained on the full combined data set. It now builds both **GokuNEmu-N** and **GokuNEmu-W** internally from the corresponding `N_L*` and `W_L*` models. Inputs within the Goku-N parameter box are evaluated with GokuNEmu-N; all other inputs are evaluated with GokuNEmu-W. The L1-L2 transition uses sigmoid sharpness 6 for GokuNEmu-N and 4 for GokuNEmu-W. This routing is automatic and does not change the user interface described below.
+
 ---
 
 ## Installation
