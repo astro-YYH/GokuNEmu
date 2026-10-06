@@ -6,6 +6,12 @@ The nonlinear matter power spectrum describes how matter clusters across cosmic 
 
 > **Post-publication update:** The current package no longer uses the models trained on the full combined data set. It now builds both **GokuNEmu-N** and **GokuNEmu-W** internally from the corresponding `N_L*` and `W_L*` models. Inputs within the Goku-N parameter box are evaluated with GokuNEmu-N; all other inputs are evaluated with GokuNEmu-W. The L1-L2 transition uses sigmoid sharpness 6 for GokuNEmu-N and 4 for GokuNEmu-W. The new models were trained using updated, more robust T2N-MusE methods introduced before [commit `49acdc1`](https://github.com/astro-YYH/T2N-MusE/commit/49acdc1514e838bc41e6bed48856a4a7e2371155). The training data were also updated: the power spectra were regenerated with `pmesh` on higher-resolution grids, improving their accuracy at the smallest scales (highest $k$) by reducing aliasing effects. In addition, inference was accelerated to approximately 1 millisecond per single-cosmology evaluation. This routing is automatic and does not change the user interface described below.
 
+### Updated leave-one-out validation
+
+![Updated leave-one-out cross-validation errors for GokuNEmu-W and GokuNEmu-N](docs/images/updated_LOOCV.png)
+
+*Leave-one-out cross-validation fractional mean absolute errors for the updated GokuNEmu-W and GokuNEmu-N models, shown across scale and redshift in the same format as the paper. The gray band marks the 1% error region.*
+
 ## Cosmological parameter space
 
 GokuNEmu takes ten cosmological parameters. The bounds of the broad **Goku-W** parameter space are:
@@ -34,9 +40,10 @@ pip install gokunemu
 ```
 
 > **Note for Intel Mac users:**  
-> You may need to install (if not yet) `pytorch` via `conda` before installing GokuNEmu due to potential compatibility issues with `pip` wheels:
+> PyTorch 2.2 was the final release with macOS x86_64 binaries. Use Python 3.10 or 3.11 and install an Intel-compatible PyTorch stack before GokuNEmu:
 > ```bash
-> conda install -c conda-forge pytorch
+> python -m pip install "numpy<2" "torch==2.2.2"
+> python -m pip install gokunemu
 > ```
 
 ---
