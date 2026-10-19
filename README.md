@@ -63,8 +63,8 @@ The data used as the training set for the emulator are available at https://gith
 If you use **GokuNEmu**, please cite:
 
 - The main GokuNEmu paper: https://arxiv.org/abs/2507.07177  
-- The Goku simulations: https://arxiv.org/abs/2501.06296  
-- The T2N-MusE emulation method: https://arxiv.org/abs/2507.07184
+- The Goku simulations (optional): https://arxiv.org/abs/2501.06296  
+- The T2N-MusE emulation method (optional): https://arxiv.org/abs/2507.07184
 
 ---
 
